@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2014 Travis Geiselbrecht
+ * Copyright (c) 2018 Simon Schmidt
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -56,11 +57,12 @@ static inline bool page_is_free(const vm_page_t *page)
 paddr_t vm_page_to_paddr(const vm_page_t *page)
 {
     pmm_arena_t *a;
-    list_for_every_entry(&arena_list, a, pmm_arena_t, node) {
+    a = page->arena;
+    /*list_for_every_entry(&arena_list, a, pmm_arena_t, node) {*/
         if (PAGE_BELONGS_TO_ARENA(page, a)) {
             return PAGE_ADDRESS_FROM_ARENA(page, a);
         }
-    }
+    /*}*/
     return -1;
 }
 
@@ -112,6 +114,7 @@ done_add:
     /* add them to the free list */
     for (size_t i = 0; i < page_count; i++) {
         vm_page_t *p = &arena->page_array[i];
+        p->arena = arena;
 
         list_add_tail(&arena->free_list, &p->node);
 
@@ -140,7 +143,8 @@ size_t pmm_alloc_pages(uint count, struct list_node *list)
         while (allocated < count) {
             vm_page_t *page = list_remove_head_type(&a->free_list, vm_page_t, node);
             if (!page)
-                goto done;
+                /* goto done; */
+                break;
 
             a->free_count--;
 
@@ -220,7 +224,8 @@ size_t pmm_free(struct list_node *list)
 
         /* see which arena this page belongs to and add it */
         pmm_arena_t *a;
-        list_for_every_entry(&arena_list, a, pmm_arena_t, node) {
+	a = page->arena;
+        /* list_for_every_entry(&arena_list, a, pmm_arena_t, node) { */
             if (PAGE_BELONGS_TO_ARENA(page, a)) {
                 page->flags &= ~VM_PAGE_FLAG_NONFREE;
 
@@ -229,7 +234,7 @@ size_t pmm_free(struct list_node *list)
                 count++;
                 break;
             }
-        }
+        /*}*/
     }
 
     mutex_release(&lock);

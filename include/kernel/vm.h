@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2014 Travis Geiselbrecht
+ * Copyright (c) 2018 Simon Schmidt
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -78,9 +79,12 @@ STATIC_ASSERT(sizeof(struct mmu_initial_mapping) == __MMU_INITIAL_MAPPING_SIZE);
  */
 extern struct mmu_initial_mapping mmu_initial_mappings[];
 
+struct pmm_arena;
+
 /* core per page structure */
 typedef struct vm_page {
     struct list_node node;
+    struct pmm_arena *arena;
 
     uint flags : 8;
     uint ref : 24;
@@ -208,6 +212,9 @@ typedef struct vmm_aspace {
 
 #define VMM_ASPACE_FLAG_KERNEL 0x1
 
+// Forward declaration.
+struct evmm_object;
+
 typedef struct vmm_region {
     struct list_node node;
     char name[32];
@@ -219,10 +226,16 @@ typedef struct vmm_region {
     size_t  size;
 
     struct list_node page_list;
+
+    vmm_aspace_t *parent;
+
+    struct list_node    e_node;
+    struct evmm_object *e_object;
 } vmm_region_t;
 
 #define VMM_REGION_FLAG_RESERVED 0x1
 #define VMM_REGION_FLAG_PHYSICAL 0x2
+#define VMM_REGION_FLAG_EXTENDED 0x4
 
 /* grab a handle to the kernel address space */
 extern vmm_aspace_t _kernel_aspace;
