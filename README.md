@@ -1,3 +1,15 @@
+# XK
+
+XK experimental kernel based on LK embedded kernel.
+
+See https://github.com/mad-day/xk for the latest version.
+
+## Goals
+
+* Userspace support
+* Demand Paging
+
+
 # LK
 
 The LK embedded kernel. An SMP-aware kernel designed for small systems.
