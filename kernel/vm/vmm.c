@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2014 Travis Geiselbrecht
+ * Copyright (c) 2018 Simon Schmidt
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -26,6 +27,7 @@
 #include <string.h>
 #include <lib/console.h>
 #include <kernel/vm.h>
+#include <kernel/vmi.h>
 #include <kernel/mutex.h>
 #include "vm_priv.h"
 
@@ -586,6 +588,12 @@ static vmm_region_t *vmm_find_region(const vmm_aspace_t *aspace, vaddr_t vaddr)
 
     return NULL;
 }
+
+vmm_region_t *vmi_find_region(const vmm_aspace_t *aspace, vaddr_t vaddr)
+{
+	return vmm_find_region(aspace, vaddr);
+}
+
 
 status_t vmm_free_region(vmm_aspace_t *aspace, vaddr_t vaddr)
 {

@@ -25,6 +25,7 @@
 #include <arch/arm.h>
 #include <kernel/thread.h>
 #include <platform.h>
+#include <kernel/vmi.h>
 
 struct fault_handler_table_entry {
     uint32_t pc;
@@ -186,8 +187,31 @@ void arm_data_abort_handler(struct arm_fault_frame *frame)
         }
     }
 
-    dprintf(CRITICAL, "\n\ncpu %u data abort, ", arch_curr_cpu_num());
     bool write = !!BIT(fsr, 11);
+
+	/* Handle Page Fault. */
+	uint vmiflags = 0;
+	switch(fault_status) {
+	case 0b00101:
+	case 0b00111: // translation fault
+	case 0b00011:
+	case 0b00110: // access flag fault
+	case 0b01001:
+	case 0b01011: // domain fault
+	case 0b01101:
+	case 0b01111: // permission fault
+		if(write)
+			vmiflags |= VMI_FLAGS_WRITE;
+		else
+			vmiflags |= VMI_FLAGS_READ;
+		if(read_cpsr()&0xf)
+			vmiflags |= VMI_FLAGS_KERNEL;
+		else
+			vmiflags |= VMI_FLAGS_USER;
+		if(vmiflags) if(vmi_page_fault(far, fsr)) return;
+	}
+
+    dprintf(CRITICAL, "\n\ncpu %u data abort, ", arch_curr_cpu_num());
 
     /* decode the fault status (from table B3-23) */
     switch (fault_status) {
@@ -244,6 +268,25 @@ void arm_prefetch_abort_handler(struct arm_fault_frame *frame)
     uint32_t far = arm_read_ifar();
 
     uint32_t fault_status = (BIT(fsr, 10) ? (1<<4) : 0) |  BITS(fsr, 3, 0);
+
+	/* Handle Page Fault. */
+	uint vmiflags = 0;
+	switch(fault_status) {
+	case 0b00101:
+	case 0b00111: // translation fault
+	case 0b00011:
+	case 0b00110: // access flag fault
+	case 0b01001:
+	case 0b01011: // domain fault
+	case 0b01101:
+	case 0b01111: // permission fault
+		vmiflags |= VMI_FLAGS_EXEC;
+		if(read_cpsr()&0xf)
+			vmiflags |= VMI_FLAGS_KERNEL;
+		else
+			vmiflags |= VMI_FLAGS_USER;
+		if(vmiflags) if(vmi_page_fault(far, fsr)) return;
+	}
 
     dprintf(CRITICAL, "\n\ncpu %u prefetch abort, ", arch_curr_cpu_num());
 
