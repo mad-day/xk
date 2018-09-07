@@ -204,7 +204,7 @@ void arm_data_abort_handler(struct arm_fault_frame *frame)
 			vmiflags |= VMI_FLAGS_WRITE;
 		else
 			vmiflags |= VMI_FLAGS_READ;
-		if(read_cpsr()&0xf)
+		if(frame->spsr&0xf)
 			vmiflags |= VMI_FLAGS_KERNEL;
 		else
 			vmiflags |= VMI_FLAGS_USER;
@@ -281,7 +281,7 @@ void arm_prefetch_abort_handler(struct arm_fault_frame *frame)
 	case 0b01101:
 	case 0b01111: // permission fault
 		vmiflags |= VMI_FLAGS_EXEC;
-		if(read_cpsr()&0xf)
+		if(frame->spsr&0xf)
 			vmiflags |= VMI_FLAGS_KERNEL;
 		else
 			vmiflags |= VMI_FLAGS_USER;
