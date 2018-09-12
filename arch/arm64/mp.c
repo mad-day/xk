@@ -79,10 +79,23 @@ enum handler_return arm_ipi_reschedule_handler(void *arg)
     return mp_mbx_reschedule_irq();
 }
 
+static enum handler_return arm_ipi_invalidate_tlb_handler(void *arg)
+{
+    LTRACEF("cpu %u, arg %p\n", arch_curr_cpu_num(), arg);
+
+    DSB;
+    __asm__ volatile("tlbi vmalle1is");
+    DSB;
+    ISB;
+
+    return INT_NO_RESCHEDULE;
+}
+
 void arch_mp_init_percpu(void)
 {
     register_int_handler(MP_IPI_GENERIC + GIC_IPI_BASE, &arm_ipi_generic_handler, 0);
     register_int_handler(MP_IPI_RESCHEDULE + GIC_IPI_BASE, &arm_ipi_reschedule_handler, 0);
+    register_int_handler(MP_IPI_INVALIDATE_TLB + GIC_IPI_BASE, &arm_ipi_invalidate_tlb_handler, 0);
 
     //unmask_interrupt(MP_IPI_GENERIC);
     //unmask_interrupt(MP_IPI_RESCHEDULE);
