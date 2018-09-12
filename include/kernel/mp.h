@@ -42,6 +42,7 @@ typedef uint32_t mp_cpu_mask_t;
 typedef enum {
     MP_IPI_GENERIC,
     MP_IPI_RESCHEDULE,
+    MP_IPI_INVALIDATE_TLB,
 } mp_ipi_t;
 
 #ifdef WITH_SMP
