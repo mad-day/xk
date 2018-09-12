@@ -59,6 +59,10 @@ void vmm_init(void)
 {
 }
 
+struct mutex* vmi_vmm_lock(){
+	return &vmm_lock;
+}
+
 static inline bool is_inside_aspace(const vmm_aspace_t *aspace, vaddr_t vaddr)
 {
     return (vaddr >= aspace->base && vaddr <= aspace->base + aspace->size - 1);
@@ -146,6 +150,8 @@ static status_t add_region_to_aspace(vmm_aspace_t *aspace, vmm_region_t *r)
 
     vaddr_t r_end = r->base + r->size - 1;
 
+    r->parent = aspace;
+
     /* does it fit in front */
     vmm_region_t *last;
     last = list_peek_head_type(&aspace->region_list, vmm_region_t, node);
@@ -168,6 +174,8 @@ static status_t add_region_to_aspace(vmm_aspace_t *aspace, vmm_region_t *r)
             }
         }
     }
+
+    r->parent = (vmm_aspace_t*)0;
 
     LTRACEF("couldn't find spot\n");
     return ERR_NO_MEMORY;
