@@ -20,17 +20,20 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#pragma once
-#include <sys/types.h>
+#include <sys/syscall.h>
+#include <arch/arm.h>
 
-/* 1 syscall number, 6 Arguments */
-uintptr_t generic_syscall_handler(
-	uintptr_t no,
-	uintptr_t a1,
-	uintptr_t a2,
-	uintptr_t a3,
-	uintptr_t a4,
-	uintptr_t a5,
-	uintptr_t a6);
-/**/
+void arm_syscall_handler(struct arm_fault_frame *frame)
+{
+    frame->r[0] =
+    generic_syscall_handler(
+     frame->r[7], /* no */
+     frame->r[0], /* a1 */
+     frame->r[1], /* a2 */
+     frame->r[2], /* a3 */
+     frame->r[3], /* a4 */
+     frame->r[4], /* a5 */
+     frame->r[5]  /* a6 */
+    );
+}
 
