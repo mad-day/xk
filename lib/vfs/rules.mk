@@ -12,6 +12,7 @@ MODULE_SRCS += \
 EXTRA_LINKER_SCRIPTS += $(LOCAL_DIR)/vfs.ld
 
 MODULE_DEPS := \
-    lib/vstream
+    lib/vstream \
+    lib/zalloc
 
 include make/module.mk
