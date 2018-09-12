@@ -49,6 +49,8 @@ typedef enum {
 void mp_init(void);
 
 void mp_reschedule(mp_cpu_mask_t target, uint flags);
+void mp_invaldate_tlb(void);
+
 void mp_set_curr_cpu_active(bool active);
 
 /* called from arch code during reschedule irq */
@@ -108,6 +110,7 @@ static inline mp_cpu_mask_t mp_get_realtime_mask(void)
 #else
 static inline void mp_init(void) {}
 static inline void mp_reschedule(mp_cpu_mask_t target, uint flags) {}
+static inline void mp_invaldate_tlb(void) {}
 static inline void mp_set_curr_cpu_active(bool active) {}
 
 static inline enum handler_return mp_mbx_reschedule_irq(void) { return 0; }

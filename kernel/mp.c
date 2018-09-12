@@ -60,6 +60,14 @@ void mp_reschedule(mp_cpu_mask_t target, uint flags)
     arch_mp_send_ipi(target, MP_IPI_RESCHEDULE);
 }
 
+void mp_invaldate_tlb(void){
+    mp_cpu_mask_t target = 0;
+
+    target = ~target;
+
+    arch_mp_send_ipi(target, MP_IPI_INVALIDATE_TLB);
+}
+
 void mp_set_curr_cpu_active(bool active)
 {
     atomic_or((volatile int *)&mp.active_cpus, 1U << arch_curr_cpu_num());
