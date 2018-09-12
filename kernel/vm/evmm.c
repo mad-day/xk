@@ -151,10 +151,10 @@ uint vmi_page_fault(vaddr_t addr, uint flags)
 		list_for_every_entry(&object->memq, p, evm_page_t, listq)
 		{
 			if(offset<p->offset) continue;
-			if(offset>p->offset) continue;
+			if(offset>p->offset) break;
 			page = p;
 		}
-	
+		
 		/*
 		 * Step 2, if not found, obtain the page.
 		 */
@@ -163,7 +163,12 @@ uint vmi_page_fault(vaddr_t addr, uint flags)
 			object->pagerops->evm_page_req(object,offset,evm_prot,&page);
 			mutex_acquire(&object->lock);
 		}
-	
+		
+		/*
+		 * Step 2a, if not obtained, terminate the algorithm.
+		 */
+		if(!page) goto vmodone;
+		
 		/*
 		 * Step 3, check upfront, if we have a conflict with the
 		 * desired use of this page, and the use of this page, prohibited by
@@ -231,9 +236,9 @@ uint vmi_page_fault(vaddr_t addr, uint flags)
 		mutex_release(vmi_vmm_lock());
 		
 		/*
-		 * Free the page if the refcount dropped to ZERO.
+		 * Free the object if the refcount dropped to ZERO. (UNLIKELY)
 		 */
-		if(freeme) evmm_destroy(object);
+		if(unlikely(freeme)) evmm_destroy(object);
 		
 		/*
 		 * Prevent double-release.
