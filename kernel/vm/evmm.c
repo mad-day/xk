@@ -186,7 +186,7 @@ uint vmi_page_fault(vaddr_t addr, uint flags)
 			page->wanted = 1;
 			
 			mutex_release(&object->lock);
-			thread_yield(); /* TODO: implement a wait queue in evmm_object_t! */
+			event_wait(&object->waitq);
 			mutex_acquire(&object->lock);
 		}
 		/*
