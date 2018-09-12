@@ -59,7 +59,7 @@ void vmm_init(void)
 {
 }
 
-struct mutex* vmi_vmm_lock(){
+mutex_t* vmi_vmm_lock(){
 	return &vmm_lock;
 }
 

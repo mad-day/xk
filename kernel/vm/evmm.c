@@ -22,13 +22,8 @@
  */
 //#include <trace.h>
 #include <assert.h>
-//#include <err.h>
-//#include <string.h>
-//#include <lib/console.h>
-//#include <kernel/vm.h>
 #include <kernel/vmi.h>
 #include <kernel/evm.h>
-//#include <kernel/mutex.h>
 
 static inline bool evmm_should_wait(evm_page_t *page,evm_prot_t prot) {
 	if(
@@ -68,7 +63,7 @@ uint vmi_page_fault(vaddr_t addr, uint flags)
 	bool           outbound = false;
 	vmm_aspace_t  *aspace;
 	vmm_region_t  *region;
-	evmm_object_t *object;
+	evmm_object_t *object = 0;
 	vaddr_t        offset;
 	evm_page_t    *page, *p;
 	evm_prot_t     evm_prot = (flags & EVM_PROT_MASK) | EVM_PROT_READ;

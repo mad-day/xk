@@ -44,9 +44,7 @@ uint vmi_page_fault(vaddr_t addr, uint flags);
 /* Helper function used for finding a region within an aspace using an vaddr. */
 vmm_region_t *vmi_find_region(const vmm_aspace_t *aspace, vaddr_t vaddr);
 
-/* Forward declaration. */
-struct mutex;
 
 /* Helper function for using the VMM lock. */
-struct mutex* vmi_vmm_lock();
+mutex_t* vmi_vmm_lock(void);
 
