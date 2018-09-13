@@ -25,6 +25,15 @@
 #include <kernel/mutex.h>
 #include <malloc.h>
 
+/*
+ * Shamelessly ripped from list.h and changed.
+ */
+#define list_for_every_entry_rev(list, entry, type, member) \
+  for((entry) = containerof((list)->prev, type, member);\
+    &(entry)->member != (list);\
+    (entry) = containerof((entry)->member.prev, type, member))
+
+
 typedef struct zone_object {
 	uintptr_t refc;
 } zone_object_t;
@@ -172,7 +181,7 @@ int zuncram(zone_t zone,vaddr_t *oldmem,off_t *size){
 	zone_block_t* block;
 	
 	mutex_acquire(&zone->mutex);
-	list_for_every_entry(&zone->blocks,block,zone_block_t,node) {
+	list_for_every_entry_rev(&zone->blocks,block,zone_block_t,node) {
 		if(!block->used) {
 			list_delete(&block->node);
 			*oldmem = (vaddr_t)block;
