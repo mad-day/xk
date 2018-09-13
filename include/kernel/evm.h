@@ -124,6 +124,7 @@ typedef struct evmm_object {
 
 struct evmm_object_ops {
 	void (*evm_page_req)(evmm_object_t* object,vaddr_t offset, evm_prot_t prot, evm_page_t** pagep);
+	void (*evm_free)(evmm_object_t* object);
 };
 
 void evmm_release(evmm_object_t* obj);

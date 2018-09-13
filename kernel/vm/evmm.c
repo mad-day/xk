@@ -283,6 +283,6 @@ void evmm_release(evmm_object_t* obj)
 
 void evmm_destroy(evmm_object_t* obj)
 {
-	/* TODO: implement! */
+	obj->pagerops->evm_free(obj);
 }
 
