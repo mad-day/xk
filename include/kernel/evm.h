@@ -127,6 +127,9 @@ struct evmm_object_ops {
 	void (*evm_free)(evmm_object_t* object);
 };
 
+void evmm_init(evmm_object_t* obj,struct evmm_object_ops* ops,void* pager);
+void evmm_pre_destroy(evmm_object_t* obj);
+
 void evmm_release(evmm_object_t* obj);
 void evmm_destroy(evmm_object_t* obj);
 

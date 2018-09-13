@@ -291,6 +291,27 @@ done:
 	return 0;
 }
 
+void evmm_init(evmm_object_t* obj,struct evmm_object_ops* ops,void* pager)
+{
+	list_initialize(&obj->e_list);
+	obj->refcount = 1;
+	mutex_init(&obj->lock);
+	
+	list_initialize(&obj->memq);
+	wait_queue_init(&obj->waitq);
+	
+	obj->pagerops = ops;
+	obj->pager = pager;
+}
+
+void evmm_pre_destroy(evmm_object_t* obj)
+{
+	mutex_destroy(&obj->lock);
+	THREAD_LOCK(state);
+		wait_queue_destroy(&obj->waitq,false);
+	THREAD_UNLOCK(state);
+}
+
 void evmm_release(evmm_object_t* obj)
 {
 	bool freeme;
