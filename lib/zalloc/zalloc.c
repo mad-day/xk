@@ -97,7 +97,7 @@ static vaddr_t izalloc(zone_t zone){
 	
 	return 0;
 }
-static bool izfree(zone_t zone,zone_object_t* obj) {
+static int izfree(zone_t zone,zone_object_t* obj) {
 	zone_block_t* block;
 	vaddr_t chunk = (vaddr_t)(zone->allocsz),newmem;
 	off_t n;
@@ -113,17 +113,17 @@ static bool izfree(zone_t zone,zone_object_t* obj) {
 		if(buf<newmem||n<buf) continue;
 		
 		obj->refc--;
-		if(obj->refc) return false;
+		if(obj->refc) return 0;
 		
 		block->used--;
-		if(block->used) return false;
+		if(block->used) return 0;
 		
 		list_delete(&block->node);
 		list_add_tail(&zone->blocks,&block->node);
-		return true;
+		return 1;
 	}
 	mutex_release(&zone->mutex);
-	return false;
+	return 0;
 }
 
 
@@ -132,9 +132,11 @@ static bool izfree(zone_t zone,zone_object_t* obj) {
  */
 vaddr_t zalloc(zone_t zone){
 	vaddr_t vt = izalloc(zone);
-	if(!vt)
-	{
+	if(	!vt &&
+		zone->alloc
+	){
 		zone->alloc(zone);
+		vt = izalloc(zone);
 	}
 	return vt;
 }
@@ -144,8 +146,9 @@ vaddr_t zget(zone_t zone) { return izalloc(zone); }
  * Free memory.
  */
 void zfree(zone_t zone,vaddr_t buf){
-	if(izfree(zone,(zone_object_t*)buf))
-	{
+	if(	izfree(zone,(zone_object_t*)buf) &&
+		zone->free
+	){
 		zone->free(zone);
 	}
 }
@@ -182,10 +185,13 @@ int zuncram(zone_t zone,vaddr_t *oldmem,off_t *size){
 	
 	mutex_acquire(&zone->mutex);
 	list_for_every_entry_rev(&zone->blocks,block,zone_block_t,node) {
-		if(!block->used) {
+		if(!(block->used)) {
 			list_delete(&block->node);
 			*oldmem = (vaddr_t)block;
 			*size = block->size;
+			
+			mutex_release(&zone->mutex);
+			return 1;
 		}
 	}
 	mutex_release(&zone->mutex);
