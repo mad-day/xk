@@ -24,7 +24,6 @@
 
 #include <kernel/vm.h>
 #include <kernel/mutex.h>
-#include <kernel/event.h>
 #include <list.h>
 /*
  * This code is inspired by the VM code of the Mach kernel, made by the CMU
@@ -116,7 +115,7 @@ typedef struct evmm_object {
 	uint                    refcount; /* The (general) reference count. (V) */
 	
 	struct list_node        memq;     /* resident memory. */
-	event_t                 waitq;    /* Event. */
+	wait_queue_t            waitq;    /* Event. */
 	
 	struct evmm_object_ops* pagerops; /* Operations for Page requests. */
 	void*                   pager;    /* The internal pager object. */
@@ -130,3 +129,4 @@ struct evmm_object_ops {
 void evmm_release(evmm_object_t* obj);
 void evmm_destroy(evmm_object_t* obj);
 
+void evmm_signal(evmm_object_t* obj);

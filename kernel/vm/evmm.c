@@ -57,6 +57,8 @@ static inline uint evmm_prot_to_mmuflags(evm_prot_t prot, bool kernel_aspace) {
 	return ret;
 }
 
+static void evmm_wait(evmm_object_t* obj);
+
 uint vmi_page_fault(vaddr_t addr, uint flags)
 {
 	bool           kernelrange = false;
@@ -181,7 +183,7 @@ uint vmi_page_fault(vaddr_t addr, uint flags)
 			page->wanted = 1;
 			
 			mutex_release(&object->lock);
-			event_wait(&object->waitq);
+			evmm_wait(object);
 			mutex_acquire(&object->lock);
 		}
 		/*
@@ -284,5 +286,19 @@ void evmm_release(evmm_object_t* obj)
 void evmm_destroy(evmm_object_t* obj)
 {
 	obj->pagerops->evm_free(obj);
+}
+
+static void evmm_wait(evmm_object_t* obj)
+{
+	THREAD_LOCK(state);
+	wait_queue_block(&obj->waitq, INFINITE_TIME);
+	THREAD_UNLOCK(state);
+}
+
+void evmm_signal(evmm_object_t* obj)
+{
+	THREAD_LOCK(state);
+	wait_queue_wake_all(&obj->waitq, false, 0);
+	THREAD_UNLOCK(state);
 }
 
