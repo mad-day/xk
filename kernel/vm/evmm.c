@@ -154,24 +154,44 @@ uint vmi_page_fault(vaddr_t addr, uint flags)
 		
 		/*
 		 * Step 2, if not found, obtain the page.
+		 *
+		 * Step 3, check upfront, if we have a conflict with the
+		 * desired use of this page, and the use of this page, prohibited by
+		 * the data manager.
 		 */
 		if(!page){
 			mutex_release(&object->lock);
 			object->pagerops->evm_page_req(object,offset,evm_prot,&page);
 			mutex_acquire(&object->lock);
+			
+			if(!page) goto vmodone;
+			
+			/*
+			 * Check after obtaining.
+			 */
+			if( page->not_allowed & evm_prot ) goto vmodone;
+		} else {
+			
+			/*
+			 * Check check immediately.
+			 */
+			if( page->not_allowed & evm_prot ) goto vmodone;
+			
+			/*
+			 * 1. We take a combination of the following rights:
+			 *     - All rights, that we already have.
+			 *     - All unlock requests, that have been made.
+			 */
+			evm_prot_t prot = (EVM_PROT_MASK^page->page_lock);
+			prot |= page->unlock_req;
+			
+			/*
+			 * 2. We look if our requested rights are all contained
+			 *    within those rights.
+			 */
+			if( (prot & evm_prot) != evm_prot )
+				object->pagerops->evm_pgunlock(object,evm_prot,page);
 		}
-		
-		/*
-		 * Step 2a, if not obtained, terminate the algorithm.
-		 */
-		if(!page) goto vmodone;
-		
-		/*
-		 * Step 3, check upfront, if we have a conflict with the
-		 * desired use of this page, and the use of this page, prohibited by
-		 * the data manager.
-		 */
-		if(page->not_allowed&evm_prot) goto vmodone;
 		
 		/*
 		 * Step 4, Wait for the page to become ready.

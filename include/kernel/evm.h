@@ -43,7 +43,7 @@ enum {
 	EVM_PROT_MASK  = 0x07,
 };
 
-// Forward declarations.
+/* Forward declarations. */
 struct evmm_object;
 struct evmm_object_ops;
 
@@ -123,6 +123,7 @@ typedef struct evmm_object {
 
 struct evmm_object_ops {
 	void (*evm_page_req)(evmm_object_t* object,vaddr_t offset, evm_prot_t prot, evm_page_t** pagep);
+	void (*evm_pgunlock)(evmm_object_t* object,evm_prot_t prot, evm_page_t* page);
 	void (*evm_free)(evmm_object_t* object);
 };
 
