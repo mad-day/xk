@@ -102,7 +102,7 @@ typedef struct evm_page {
 	evm_prot_t          page_lock;   /* Uses temporarily prohibited by data manager (O). Lock-Style. */
 	evm_prot_t          not_allowed; /* Uses permanently prohibited by data manager (O). */
 	evm_prot_t          unlock_req;  /* Outstanding unlock request (O). */
-	evm_prot_t          prev_uses;   /* Outstanding unlock request (O). */
+	evm_prot_t          prev_uses;   /* Flags, used in last mapping. (O). */
 } evm_page_t;
 
 /*
